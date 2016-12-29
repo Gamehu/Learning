@@ -1,0 +1,15 @@
+
+启动项目遇到问题如下：修改数据库连接后解决
+Last packet sent to the server was 0 ms ago错误原因：连接超时。
+
+    SHOW VARIABLES LIKE 'wait_timeout%';  
+
+28800 = 8小时
+
+修改my.ini增加
+
+wait_timeout=1814400 = 21小时
+
+    SHOW GLOBAL VARIABLES LIKE 'wait_timeout';  
+
+ 
