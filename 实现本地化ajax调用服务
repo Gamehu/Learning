@@ -77,5 +77,605 @@ public class Perform extends AbstractPerform {
 	}
 
 }
+-------------------------------------------------------------------------------------
+js封装http请求的头信息：
+xkernel.ajax = {
+	INNERTYPE : {
+		NullType : -1,
+		BooleanType : 0,
+		ByteType : 1,
+		CharType : 2,
+		ShortType : 3,
+		FloatType : 4,
+		IntegerType : 5,
+		LongType : 6,
+		DoubleType : 7,
+		NumberType : 8,
+		ObjectType : 9,
+		StringType : 10,
+		DateType : 11,
+		ArrayType : 12
+	},
+	_id : 0,
+	_header : "CommunityType",
+	_value : "AJAX",
+	_encType:"Content-type",
+	_encValue:"application/x-www-form-urlencoded",
+	defaultRequestURL : "service",
+	defaultCrossURL : "crossService",
+	defaultTimeOut : 10000,
+	sessionUserId : 0,
+	getXMLHTTPRequest : function() {
+		var $ = null;
+		if (window.XMLHttpRequest) {
+			$ = new XMLHttpRequest();
+			if ($.overrideMimeType)
+				$.overrideMimeType("text/html");
+		} else if (ActiveXObject)
+			$ = new ActiveXObject("Microsoft.XMLHTTP");
+		return $;
+	},
+	fromJson : function(jsonStr) {
+		try {
+			jsonStr = jsonStr.replace(/\n|\r|\t/g, "");
+			return eval("(" + jsonStr + ")");
+		} catch (e) {
+			Console.debug("Package Format Error:" + jsonStr);
+			return jsonStr + "";
+		}
+	},
+	sendSynchronization : function(B, _, A, C) {
+		var D = this.getXMLHTTPRequest();
+		if (!_)
+			_ = this.defaultRequestURL;
+		else if (_.indexOf("http://") == 0) {
+			_ = this.defaultCrossURL + "?crossUrl=" + encodeURIComponent(_);
+		}
+		if (D != null) {
+			D.open("POST", _, false);
+			D.setRequestHeader(this._header, this._value);
+			D.setRequestHeader(this._encType,this._encValue);
+			if (C == null || !xkernel.util.isInt(C))
+				C = this.defaultTimeOut;
+			else if (C <= 0)
+				C = this.defaultTimeOut;
+			var $ = null;
+			if (C > 0)
+				$ = setTimeout(function() {
+					try {
+						D.abort();
+					} catch ($) {
+					}
+				}, C);
+			D.send(B);
+			if (D.status != 200 && D.status != 0)
+				switch (D.status) {
+				case 12002:
+				case 12029:
+				case 12030:
+				case 12031:
+				case 12152:
+				case 13030:
+				default:
+					if ($ != null)
+						clearTimeout($);
+					throw D.status + ":NetWork Transportation Exception";
+				}
+			else {
+				if ($ != null)
+					clearTimeout($);
+				A = (A == null) ? true : A;
+				if (A)
+					return this.fromJson(D.responseText);
+				else
+					return D.responseText;
+			}
+		} else
+			throw "Can not create XmlHttP request instance.";
+	},
+	sendAsynchronous : function(C, B, _, A, D) {
+		var E = this.getXMLHTTPRequest();
+		if (!_)
+			_ = this.defaultRequestURL;
+		else if (_.indexOf("http://") == 0) {
+			_ = this.defaultCrossURL + "?crossUrl=" + encodeURIComponent(_);
+		}
+		if (E != null) {
+			E.open("POST", _, true);
+			E.setRequestHeader(this._header, this._value);
+			E.setRequestHeader(this._encType,this._encValue);
+			if (D == null || !xkernel.util.isInt(D))
+				D = this.defaultTimeOut;
+			else if (D <= 0)
+				D = this.defaultTimeOut;
+			var $ = null;
+			if (D > 0)
+				$ = setTimeout(function() {
+					try {
+						E.abort();
+					} catch ($) {
+					}
+				}, D);
+			E.onreadystatechange = function() {
+				try {
+					if ((E.readyState == 4) && E.status)
+						if (E.status == 200 || E.status == 0) {
+							if ($ != null)
+								clearTimeout($);
+							if (B) {
+								A = (A == null) ? true : A;
+								if (A)
+									B(xkernel.ajax.fromJson(E.responseText));
+								else
+									B(E.responseText);
+							}
+						} else {
+							switch (E.status) {
+							case 12002:
+							case 12029:
+							case 12030:
+							case 12031:
+							case 12152:
+							case 13030:
+							default:
+							}
+							throw E.status
+									+ ":NetWork Transportation Exception";
+						}
+				} catch (_) {
+					if ($ != null)
+						clearTimeout($);
+				}
+			};
+			E.send(C);
+		} else
+			throw new Error("Can not create XmlHttP request instance.");
+	},
+	call : function($, A) {
+		if ($ != null) {
+			var _ = new this.Message($), B = new Array();
+			for ( var C = 2; C < arguments.length; C++)
+				B.push(arguments[C]);
+			_.paramaters = B;
+			if (A == null)
+				return this.sendSynchronization(_.toString());
+			else
+				this.sendAsynchronous(_.toString(), A);
+		}
+	},
+	sendCommbox : function(C, B, T, _, A, D) {
+		var E = this.getXMLHTTPRequest();
+		if (!_)
+			_ = this.defaultRequestURL;
+		if (E != null) {
+			E.open("POST", _, true);
+			E.setRequestHeader(this._header, this._value);
+			E.setRequestHeader(this._encType,this._encValue);
+			if (D == null || !xkernel.util.isInt(D))
+				D = this.defaultTimeOut;
+			else if (D <= 0)
+				D = this.defaultTimeOut;
+			var $ = null;
+			if (D > 0)
+				$ = setTimeout(function() {
+					try {
+						E.abort();
+					} catch ($) {
+					}
+				}, D);
+			E.onreadystatechange = function() {
+				try {
+					if ((E.readyState == 4) && E.status)
+						if (E.status == 200 || E.status == 0) {
+							if ($ != null)
+								clearTimeout($);
+							if (B) {
+								A = (A == null) ? true : A;
+								if (A)
+									B(xkernel.ajax.fromJson(E.responseText), T);
+								else
+									B(E.responseText, T);
+							}
+						} else {
+							switch (E.status) {
+							case 12002:
+							case 12029:
+							case 12030:
+							case 12031:
+							case 12152:
+							case 13030:
+							default:
+							}
+							throw E.status
+									+ ":NetWork Transportation Exception";
+						}
+				} catch (_) {
+					if ($ != null)
+						clearTimeout($);
+				}
+			};
+			E.send(C);
+		} else
+			throw new Error("Can not create XmlHttP request instance.");
+	},
+	callCommbox : function($, A, T) {
+		if ($ != null) {
+			var _ = new this.Message($), B = new Array();
+			for ( var C = 3; C < arguments.length; C++)
+				B.push(arguments[C]);
+			_.paramaters = B;
+			this.sendCommbox(_.toString(), A, T);
+		}
+	},
+	callCrossCommbox : function($, A, T, S) {
+		if ($ != null) {
+			if (this.sessionUserId > 0)
+				$ = $ + "-" + this.sessionUserId;
+			var _ = new this.Message($), B = new Array();
+			for ( var C = 4; C < arguments.length; C++)
+				B.push(arguments[C]);
+			_.paramaters = B;
+			this.sendCommbox(_.toString(), A, T, S);
+		}
+	},
+	callCross : function($, A, T) {
+		if ($ != null) {
+			var _ = new this.Message($), B = new Array();
+			for (var C = 3; C < arguments.length; C++)
+				B.push(arguments[C]);
+			_.paramaters = B;
+			if (A == null)
+				return this.sendSynchronization(_.toString(), T);
+			else
+				this.sendAsynchronous(_.toString(), A, T);
+		}
+	},
+	getType : function(_) {
+		var $ = this.INNERTYPE, A = typeof (_);
+		if (_ == null)
+			return $.NullType;
+		if (_ instanceof String)
+			return $.StringType;
+		if (_ instanceof Boolean)
+			return $.BooleanType;
+		if (_ instanceof Number)
+			return $.NumberType;
+		if (_ instanceof Array)
+			return $.ArrayType;
+		if (_ instanceof Date)
+			return $.DateType;
+		if (A == "boolean")
+			return $.BooleanType;
+		if (A == "string")
+			return $.StringType;
+		if (A == "number")
+			return $.NumberType;
+		if (_ instanceof Byte)
+			return $.ByteType;
+		if (_ instanceof Float)
+			return $.FloatType;
+		if (_ instanceof Short)
+			return $.ShortType;
+		if (_ instanceof Char)
+			return $.CharType;
+		if (_ instanceof Integer)
+			return $.IntegerType;
+		if (_ instanceof Long)
+			return $.LongType;
+		if (_ instanceof Double)
+			return $.DoubleType;
+		if (A == "object")
+			return $.ObjectType;
+		return $.NullType;
+	},
+	getClass : function(_) {
+		var $ = this.INNERTYPE;
+		switch (_) {
+		case $.StringType:
+			return "java.lang.String";
+		case $.DateType:
+			return "java.util.Date";
+		case $.BooleanType:
+			return "boolean";
+		case $.IntegerType:
+			return "int";
+		case $.DoubleType:
+			return "double";
+		case $.LongType:
+			return "long";
+		case $.ShortType:
+			return "short";
+		case $.FloatType:
+			return "float";
+		case $.CharType:
+			return "char";
+		case $.ByteType:
+			return "byte";
+		default:
+			return "java.lang.Void";
+		}
+	},
+	_pkg : function(A) {
+		var B = this, E = B.INNERTYPE;
+		if (A == null)
+			return "";
+		var G = B.getType(A);
+		switch (G) {
+		case E.StringType:
+			return "<string>" + A + "</string>";
+		case E.NumberType:
+			if (xkernel.util.isInt(A))
+				return "<int>" + A + "</int>";
+			return "<double>" + A + "</double>";
+		case E.DateType:
+			return "<object class=\"java.util.Date\"><long>" + A.getTime()
+					+ "</long></object>";
+		case E.BooleanType:
+			return "<boolean>" + (A ? "true" : "false") + "</boolean>";
+		case E.IntegerType:
+			return A.toString();
+		case E.DoubleType:
+			return A.toString();
+		case E.ObjectType:
+			var F = A["className"];
+			if (F == null)
+				return "";
+			var _ = "<object class=\"" + F + "\">";
+			for ( var H in A) {
+				if (H == "xkernelType" || H == "className")
+					continue;
+				_ += "<void property=\"" + H + "\">";
+				_ += B._pkg(A[H]);
+				_ += "</void>";
+			}
+			_ += "</object>";
+			return _;
+		case E.ArrayType:
+			var D = new Array(), G = null, F = null;
+			for ( var I = 0; I < A.length; I++) {
+				var C = A[I];
+				if (C == null)
+					continue;
+				if (G == null) {
+					G = B.getType(C);
+					if (G == E.NumberType) {
+						if (xkernel.util.isInt(C))
+							G = E.IntegerType;
+						else
+							G = E.DoubleType;
+					} else if (G == E.ObjectType) {
+						F = C["className"];
+						if (F == null)
+							return "";
+					}
+				} else {
+					var $ = B.getType(C);
+					if ($ != G) {
+						if ($ >= E.ByteType && $ <= E.DoubleType)
+							G = ($ > G) ? $ : G;
+						else if ($ == E.NumberType) {
+							if (xkernel.util.isInt(C))
+								G = E.IntegerType;
+							else
+								G = E.DoubleType;
+							G = ($ > G) ? $ : G;
+						} else
+							return "";
+					} else if (G == E.ObjectType)
+						if (F != C["className"])
+							return "";
+				}
+				D.push(C);
+			}
+			if (D.length == 0)
+				return "";
+			if (F == null)
+				F = B.getClass(G);
+			_ = "<array class=\"" + F + "\" length=\"" + D.length + "\">";
+			for (I = 0; I < D.length; I++) {
+				_ += "<void index=\"" + I + "\">";
+				_ += B._pkg(D[I]);
+				_ += "</void>";
+			}
+			_ += "</array>";
+			return _;
+		case E.LongType:
+			return A.toString();
+		case E.ShortType:
+			return A.toString();
+		case E.FloatType:
+			return A.toString();
+		case E.CharType:
+			return A.toString();
+		case E.ByteType:
+			return A.toString();
+		default:
+			return "";
+		}
+	},
+	Message : function(B, C) {
+		var A = xkernel.ajax, $ = "com.kingsoft.control.ajax.AjaxParam", _ = A._id++;
+		this.service = B;
+		this.paramaters = C;
+		this.getRid = function() {
+			return _;
+		};
+		this.setValue = function($) {
+			this.paramaters = $;
+		};
+		this.toString = function() {
+			var B = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0\" class=\"java.beans.XMLDecoder\">";
+			B += "<object class=\"" + $ + "\">";
+			B += "<void property=\"id\"><int>";
+			B += _;
+			B += "</int></void><void property=\"name\"><string>";
+			B += this.service;
+			B += "</string></void>";
+			if (this.paramaters != null) {
+				var C = 1, D = false;
+				if (A.getType(this.paramaters) == A.INNERTYPE.ArrayType) {
+					C = this.paramaters.length;
+					D = true;
+				}
+				B += "<void property=\"values\"><array class=\"java.lang.Object\" length=\""
+						+ C + "\">";
+				if (D) {
+					for ( var E = 0; E < this.paramaters.length; E++) {
+						B += "<void index=\"" + E + "\">";
+						B += A._pkg(this.paramaters[E]);
+						B += "</void>";
+					}
+				} else {
+					B += "<void index=\"0\">";
+					B += A._pkg(this.paramaters);
+					B += "</void>";
+				}
+				B += "</array></void>";
+			}
+			B += "</object></java>";
+			return B;
+		};
+	},
+	webPager : function($) {
+		this.pageSize = 10;
+		if ($ != null)
+			this.pageSize = $;
+		this.currentPage = 1;
+		this.className = "com.kingsoft.control.database.WebPager";
+	}
+};
+function Byte(_) {
+	var A = 127, $ = -128, C = 0, B = xkernel.ajax.INNERTYPE.ByteType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function(_) {
+		_ = parseInt(_);
+		if (!isNaN(_))
+			if (_ <= A && _ >= -$)
+				C = _;
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<byte>" + C + "</byte>";
+	};
+	this.setValue(_);
+}
+function Char(_) {
+	var A = 65535, $ = 0, C = 0, B = xkernel.ajax.INNERTYPE.CharType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function($) {
+		$ = $ + "";
+		C = $.charAt(0);
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<char>" + C + "</char>";
+	};
+	this.setValue(_);
+}
+function Float(_) {
+	var A = 3.4028235e+38, $ = 1.4e-45, C = 0, B = xkernel.ajax.INNERTYPE.FloatType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function(_) {
+		_ = parseFloat(_);
+		if (!isNaN(_))
+			if (_ <= A && _ >= -$)
+				C = _;
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<float>" + C + "</float>";
+	};
+	this.setValue(_);
+}
+function Short(_) {
+	var A = 32767, $ = -32768, C = 0, B = xkernel.ajax.INNERTYPE.ShortType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function(_) {
+		_ = parseInt(_);
+		if (!isNaN(_))
+			if (_ <= A && _ >= -$)
+				C = _;
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<short>" + C + "</short>";
+	};
+	this.setValue(_);
+}
+function Long(_) {
+	var A = 9223372036854776000, $ = -9223372036854776000, C = 0, B = xkernel.ajax.INNERTYPE.LongType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function(_) {
+		_ = parseInt(_);
+		if (!isNaN(_))
+			if (_ <= A && _ >= -$)
+				C = _;
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<long>" + C + "</long>";
+	};
+	this.setValue(_);
+}
+function Integer(_) {
+	var A = 2147483647, $ = -2147483648, C = 0, B = xkernel.ajax.INNERTYPE.IntegerType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function(_) {
+		_ = parseInt(_);
+		if (!isNaN(_))
+			if (_ <= A && _ >= -$)
+				C = _;
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<int>" + C + "</int>";
+	};
+	this.setValue(_);
+}
+function Double(_) {
+	var A = 1.7976931348623157e+308, $ = 5e-324, C = 0, B = xkernel.ajax.INNERTYPE.DoubleType;
+	this.getXkernelType = function() {
+		return B;
+	};
+	this.setValue = function(_) {
+		_ = parseFloat(_);
+		if (!isNaN(_))
+			if (_ <= A && _ >= -$)
+				C = _;
+	};
+	this.getValue = function() {
+		return C;
+	};
+	this.toString = function() {
+		return "<double>" + C + "</double>";
+	};
+	this.setValue(_);
+}
+
+
 调用：
   js通过ajax直接调用。service.method,当然前提是service已经装载
