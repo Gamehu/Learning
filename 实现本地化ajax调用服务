@@ -1,0 +1,81 @@
+/**
+ * 该类继承抽象AJAX执行类，本地化实现AJAX调用
+ * 
+ * @author zhangxulong
+ * 
+ * @version 2010-3-12
+ * 
+ * @since JDK 1.6.0_10-rc2
+ * 
+ */
+public class Perform extends AbstractPerform {
+	private static Logger S_Logger = Logger.getLogger(Perform.class);
+	@Override
+	public Object execute(AjaxParam param, HttpServletRequest request,
+			HttpServletResponse response) throws AjaxException {
+
+		HttpSession session = request.getSession();
+		UserInfo user = (UserInfo) session.getAttribute(Const.FS_SESSION_USER);
+		if (user == null) {
+			user = (UserInfo) session.getAttribute(Const.FS_SESSION_WWW_USER);
+			if (user == null) {
+				user = new UserInfo();
+				try {
+					// 获取默认数据库连接提供者
+					ConnectionProvider provider = ConnectionProviderFactory.getConnectionProvider();
+					user.setConnectionProvider(provider);
+
+					// 设置服务提供者
+					ServiceProvider serviceProvider = new ServiceProvider();
+					serviceProvider.setUser(user);
+					user.setServiceProvider(serviceProvider);
+
+					// 设置持久层提供者
+					DAOProvider daoProvider = new DAOProvider();
+					user.setDaoProvider(daoProvider);
+					Connection conn = provider.getConnection();
+					provider.releaseConnection(conn);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				session.setAttribute(Const.FS_SESSION_WWW_USER, user);
+			}
+		}
+		String name = param.getName();
+		int len = name.lastIndexOf(".");
+		// 获取服务名称
+		String className = AjaxHelper.getServices().get(name.substring(0, len));
+		// 要调用的方法名称
+		String methodName = name.substring(len + 1);
+
+		Service service = null;
+		try {
+			service = (Service) user.getServiceProvider().getService(className);
+			Method method = null;
+			Method[] methods = service.getClass().getDeclaredMethods();
+			for (int i = 0; i < methods.length; i++) {
+				if (methodName.equals(methods[i].getName())) {
+					method = methods[i];
+					break;
+				}
+			}
+			if (param.getValues().length > 0) {
+				return method.invoke(service, param.getValues());
+			}
+			return method.invoke(service);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (S_Logger.isDebugEnabled())
+				S_Logger.debug("service_center - Perform method name:" + name +"  values"+ JSONArray.fromObject(param.getValues()).toString() +"  msg:"+ e.getMessage());
+			throw new AjaxException(AjaxException.FS_SERVICE_ERROR, e);
+		} finally {
+			if (service != null) {
+				service.releaseConnection();
+			}
+		}
+	}
+
+}
+调用：
+  js通过ajax直接调用。service.method,当然前提是service已经装载
